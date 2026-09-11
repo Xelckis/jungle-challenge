@@ -1,0 +1,51 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: jungle_postgres
+    environment:
+      POSTGRES_USER: jungle_user
+      POSTGRES_PASSWORD: jungle_password
+      POSTGRES_DB: jungle_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U jungle_user -d jungle_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - "./migrations/000001_init_schema.up.sql:/docker-entrypoint-initdb.d/init.sql:z"
+
+  localstack:
+    image: localstack/localstack:3.8.1
+    container_name: jungle_localstack
+    environment:
+      - SERVICES=sqs
+      - DEFAULT_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=test
+      - AWS_SECRET_ACCESS_KEY=test
+    ports:
+      - "4566:4566"
+    volumes:
+      - localstack_data:/var/lib/localstack
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./localstack-init.sh:/etc/localstack/init/ready.d/init.sh:z"
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0.1
+    container_name: jungle_keycloak
+    command: start-dev --import-realm --verbose
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+    volumes:
+      - "./realm-export.json:/opt/keycloak/data/import/jungle-realm-realm.json:z"
+
+volumes:
+  postgres_data:
+  localstack_data:

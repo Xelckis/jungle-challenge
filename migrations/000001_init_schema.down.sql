@@ -1,0 +1,6 @@
+DROP TABLE IF EXISTS outbox;
+DROP TABLE IF EXISTS wallet_ledger;
+DROP TABLE IF EXISTS wager_transactions;
+DROP TABLE IF EXISTS wallets;
+DROP TABLE IF EXISTS inbox;
+DROP EXTENSION IF EXISTS "uuid-ossp";
